@@ -1,4 +1,6 @@
-// 配置PostCSS的配置文件
+/**
+ * 配置PostCSS的配置文件
+*/
 
 // PostCSS配置文件需要导出一个对象
 module.exports = {

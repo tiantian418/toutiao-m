@@ -1,13 +1,9 @@
 <template>
-  <div id="app">
-    <!-- 路由出口 -->
-    <router-view />
-  </div>
+  <div class="my-container">我的页面</div>
 </template>
-
 <script>
 export default {
-  name: 'App',
+  name: 'MyIndex',
   components: {},
   props: {},
   data () {
@@ -20,6 +16,5 @@ export default {
   methods: {}
 }
 </script>
-
 <style scoped lang='less'>
 </style>

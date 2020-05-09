@@ -1,13 +1,9 @@
 <template>
-  <div id="app">
-    <!-- 路由出口 -->
-    <router-view />
-  </div>
+  <div class="qa-container">问答页面</div>
 </template>
-
 <script>
 export default {
-  name: 'App',
+  name: 'QaIndex',
   components: {},
   props: {},
   data () {
@@ -20,6 +16,5 @@ export default {
   methods: {}
 }
 </script>
-
 <style scoped lang='less'>
 </style>

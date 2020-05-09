@@ -1,13 +1,9 @@
 <template>
-  <div id="app">
-    <!-- 路由出口 -->
-    <router-view />
-  </div>
+  <div class="video-container">视频页面</div>
 </template>
-
 <script>
 export default {
-  name: 'App',
+  name: 'VideoIndex',
   components: {},
   props: {},
   data () {
@@ -20,6 +16,5 @@ export default {
   methods: {}
 }
 </script>
-
 <style scoped lang='less'>
 </style>
