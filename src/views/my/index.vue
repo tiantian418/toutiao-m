@@ -102,12 +102,15 @@ export default {
     }
   },
   computed: {
+    // 把用户token映射到本地
     ...mapState(['user'])
   },
   watch: {},
   created () {
-    // 加载用户信息
-    this.loadCurrentUser()
+    // 加载(获取)用户信息
+    if (this.user) {
+      this.loadCurrentUser()
+    }
   },
   mounted () {},
   methods: {
