@@ -22,28 +22,52 @@
        <!-- 文章列表 -->
        <article-list :channel="channel" />
       </van-tab>
+      <!-- 给这里添加一个占位元素,是为了解决汉堡按钮定位把最后一个列表项给挡住了 -->
+      <div slot="nav-right" class="wap-nav-placeholder"></div>
+      <div
+        slot="nav-right"
+        class="wap-nav-wrap"
+        @click="isChannelEditshow = true"
+      >
+        <van-icon name="wap-nav" />
+      </div>
     </van-tabs>
+    <van-popup
+      v-model="isChannelEditshow"
+      closeable
+      position="bottom"
+      class="channel-edit-popup"
+      close-icon-position="top-left"
+      get-container="body"
+    >
+      <channel-edit />
+    </van-popup>
   </div>
 </template>
+
 <script>
 import { getUserChannels } from '@/api/user'
 import ArticleList from './components/article-list'
+import ChannelEdit from './components/channel-edit'
 
 export default {
   name: 'HomeIndex',
   components: {
-    ArticleList
+    ArticleList,
+    ChannelEdit
   },
   props: {},
   data () {
     return {
       active: 0, // 控制被激活的标签
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      isChannelEditshow: false // 控制编辑频道的显示状态
     }
   },
   computed: {},
   watch: {},
   created () {
+    // 加载文章频道列表
     this.loadChannels()
   },
   mounted () {},
@@ -56,6 +80,7 @@ export default {
   }
 }
 </script>
+
 <style scoped lang='less'>
 .home-container {
   /deep/ .van-nav-bar__title {
@@ -85,5 +110,36 @@ export default {
       bottom: 20px;
     }
   }
+  .wap-nav-placeholder {
+    width: 33px;
+    flex-shrink: 0;
+  }
+  .wap-nav-wrap {
+    position: fixed;
+    right: 0;
+    width: 33px;
+    height: 43px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.9;
+    .van-icon {
+      font-size: 24px;
+    }
+    &:before {
+      content: '';
+      width: 1px;
+      background: url("./line.png") no-repeat;
+      background-size: contain;
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+  }
+}
+.channel-edit-popup {
+  height: 100%;
 }
 </style>
