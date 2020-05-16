@@ -1,22 +1,123 @@
 <template>
-  <div class="channel-edit">频道编辑</div>
+  <div class="channel-edit">
+    <van-cell center :border="false">
+      <!-- 我的频道和编辑 -->
+      <div
+        slot="title"
+        class="channel-title"
+      >我的频道</div>
+      <van-button
+        type="danger"
+        size="mini"
+        plain
+        round
+      >编辑</van-button>
+    </van-cell>
+    <van-grid :gutter="10">
+      <van-grid-item
+        class="grid-item"
+        v-for="(channel, index) in userChannels"
+        :key="index"
+        :text="channel.name"
+      />
+    </van-grid>
+
+    <!-- 频道推荐 -->
+    <van-cell center :border="false">
+      <div
+        slot="title"
+        class="channel-title"
+      >频道推荐</div>
+    </van-cell>
+    <van-grid :gutter="10">
+      <van-grid-item
+        class="grid-item"
+        v-for="(channel, index) in recommendChannels"
+        :key="index"
+        :text="channel.name"
+      />
+    </van-grid>
+  </div>
 </template>
 
 <script>
+import { getAllChannels } from '@/api/channel'
+
 export default {
   name: 'ChannelEdit',
   components: {},
-  props: {},
-  data () {
-    return {}
+  props: {
+    userChannels: {
+      type: Array,
+      required: true
+    }
   },
-  computed: {},
+  data () {
+    return {
+      allChannels: [] // 获取频道数据列表
+    }
+  },
+  computed: {
+    // 推荐的频道列表
+    recommendChannels () {
+      // filter方法:过滤数据，根据方法返回的布尔值true来收集数据 （查找满足条件的所有元素）
+      return this.allChannels.filter(channel => {
+        // 判断channel是否属于用户频道
+        return !this.userChannels.find(userChannel => { // find方法:查找满足条件的单个元素
+          // 找到满足该条件的元素
+          return userChannel.id === channel.id
+        })
+      })
+    }
+  },
   watch: {},
-  created () {},
+  created () {
+    this.loadAllChannels()
+  },
   mounted () {},
-  methods: {}
+  methods: {
+    async loadAllChannels () {
+      const { data } = await getAllChannels()
+      this.allChannels = data.data.channels
+    }
+
+    // const arr = []
+    // // 遍历所有频道
+    // this.allChannels.forEach(channel => {
+    //   let flag = false
+    //   for (let i = 0; i < this.userChannels.length; i++) {
+    //     if (this.userChannels[i].id === channel.id) {
+    //       // 所有频道中的频道项属于用户频道
+    //       flag = true
+    //       break
+    //     }
+    //   }
+    //   if (!flag) {
+    //     arr.push(channel)
+    //   }
+    // })
+    // return arr
+  }
 }
 </script>
 
 <style scoped lang='less'>
+.channel-edit {
+  padding-top: 54px;
+  .channel-title {
+    font-size: 16px;
+    color: #333333;
+  }
+  .grid-item {
+    width: 80px;
+    height: 43px;
+  }
+  /deep/ .van-grid-item__content {
+    background-color: #f4f5f6;
+    .van-grid-item__text {
+      font-size: 14px;
+      color: #222;
+    }
+  }
+}
 </style>

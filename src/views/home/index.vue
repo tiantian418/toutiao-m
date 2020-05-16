@@ -40,7 +40,7 @@
       close-icon-position="top-left"
       get-container="body"
     >
-      <channel-edit />
+      <channel-edit :user-channels="channels" />
     </van-popup>
   </div>
 </template>
@@ -61,7 +61,7 @@ export default {
     return {
       active: 0, // 控制被激活的标签
       channels: [], // 频道列表
-      isChannelEditshow: false // 控制编辑频道的显示状态
+      isChannelEditshow: true // 控制编辑频道的显示状态
     }
   },
   computed: {},
