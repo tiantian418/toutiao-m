@@ -8,16 +8,23 @@
       placeholder="请输入搜索关键词"
       @search="onSearch"
       @cancel="$router.back()"
+      @focus="isResultShow = false"
     />
 
-    <!-- 智能联想 -->
-    <search-suggestion />
+    <!-- 搜索结果 -->
+    <search-result
+      v-if="isResultShow"
+      :search-text="searchText"
+    />
+
+    <!-- 联想建议 -->
+    <search-suggestion
+      v-else-if="searchText"
+      :search-text="searchText"
+    />
 
     <!-- 历史记录 -->
-    <search-history />
-
-    <!-- 搜索结果 -->
-    <search-result />
+    <search-history v-else />
   </div>
 </template>
 <script>
@@ -35,7 +42,8 @@ export default {
   props: {},
   data () {
     return {
-      searchText: '' // 搜索输入框的内容
+      searchText: '', // 搜索输入框的内容
+      isResultShow: false // 控制搜索结果的显示状态
     }
   },
   computed: {},
@@ -44,10 +52,14 @@ export default {
   mounted () {},
   methods: {
     onSearch () {
-      console.log('onSearch')
+      // 展示搜索结果
+      this.isResultShow = true
     }
   }
 }
 </script>
 <style scoped lang='less'>
+.van-search__action {
+  color: #fff;
+}
 </style>
