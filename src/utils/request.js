@@ -3,11 +3,25 @@
  */
 import axios from 'axios'
 
+import JSONbig from 'json-bigint'
+
 // 在非组件模块中获取store的方式 和组件中this.$store一样
 import store from '@/store'
 
 const request = axios.create({
-  baseURL: 'http://ttapi.research.itcast.cn/' // 基础路径
+  baseURL: 'http://ttapi.research.itcast.cn/', // 基础路径
+  transformResponse: [function (data) {
+    // 后端返回的数据可能不是JSON格式的字符串,为了不报错,此时使用try-catch来捕获异常,处理异常的发生
+    try {
+      // axios默认在内部使用的是JSON.parse来转换处理原始数据
+      // 如果转换成功,则直接返回结果
+      return JSONbig.parse(data)
+    } catch (err) {
+      console.log('转换失败', err)
+      // 如果转换失败,则原封不动的直接返回给请求使用
+      return data
+    }
+  }]
 })
 
 // 请求拦截器 (Interceptors)
