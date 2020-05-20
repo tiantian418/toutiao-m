@@ -17,7 +17,6 @@ const request = axios.create({
       // 如果转换成功,则直接返回结果
       return JSONbig.parse(data)
     } catch (err) {
-      console.log('转换失败', err)
       // 如果转换失败,则原封不动的直接返回给请求使用
       return data
     }
