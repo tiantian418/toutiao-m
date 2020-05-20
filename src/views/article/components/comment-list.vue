@@ -7,10 +7,11 @@
       finished-text="没有更多了"
       @load="onLoad"
     >
-      <van-cell
+      <comment-item
         v-for="(comment, index) in list"
         :key="index"
-        :title="comment.content"
+        :comment="comment"
+        @reply-click="$emit('reply-click', $event)"
       />
     </van-list>
   </div>
@@ -18,19 +19,29 @@
 
 <script>
 import { getComments } from '@/api/comment'
+import CommentItem from './comment-item'
 
 export default {
   name: 'CommentList',
-  components: {},
+  components: {
+    CommentItem
+  },
   props: {
     source: {
       type: [Number, String, Object],
       required: true
+    },
+    type: {
+      type: String,
+      default: 'a'
+    },
+    list: {
+      type: Array,
+      default: () => []
     }
   },
   data () {
     return {
-      list: [],
       loading: false,
       finished: false,
       offset: null, // 获取下一页数据的页码
@@ -45,8 +56,8 @@ export default {
     async onLoad () {
       // 1.请求获取数据
       const { data } = await getComments({
-        type: 'a', // 评论类型
-        source: this.source, // 文章id或评论id
+        type: this.type, // 评论类型
+        source: this.source.toString(),
         offset: this.offset, // 获取评论数据的偏移量
         limit: this.limit // 每页大小
       })

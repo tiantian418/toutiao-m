@@ -2,46 +2,45 @@
   <div class="article-container">
     <!-- 导航栏 -->
     <van-nav-bar
-      class="van-nav-bar"
+      class="app-nav-bar"
       title="文章详情"
       left-arrow
-      @click="$router.back()"
+      @click-left="$router.back()"
     />
-
     <div class="article-wrap">
-      <!-- 标题 -->
       <h1 class="title">{{ article.title }}</h1>
-      <!-- 头像和作者名称 -->
       <van-cell center class="user-info">
         <div slot="title" class="name">{{ article.aut_name }}</div>
         <van-image
           slot="icon"
           class="avatar"
-          fit="cover"
           round
+          fit="cover"
           :src="article.aut_photo"
         />
-        <!-- 时间 -->
         <div slot="label" class="pubdate">{{ article.pubdate | relativeTime }}</div>
-        <!-- 按钮 -->
         <van-button
           class="follow-btn"
-          round
           :type="article.is_followed ? 'default' : 'info'"
           :icon="article.is_followed ? '' : 'plus'"
+          round
           size="small"
           :loading="isFollowLoading"
           @click="onFollow"
         >{{ article.is_followed ? '已关注' : '关注' }}</van-button>
       </van-cell>
-      <!-- 正文内容 -->
       <div
         class="markdown-body"
         v-html="article.content"
         ref="article-content"
       ></div>
       <!-- 文章评论列表 -->
-      <comment-list :source="articleId" />
+      <comment-list
+        :source="articleId"
+        :list="commentList"
+        @update-total-count="totalCommentCount = $event"
+        @reply-click="onReplyClick"
+      />
     </div>
 
     <!-- 底部区域 -->
@@ -55,8 +54,8 @@
       >写评论</van-button>
       <van-icon
         name="comment-o"
-        info="totalCommentCount"
-        color= "#777"
+        :info="totalCommentCount"
+        color="#777"
       />
       <van-icon
         :color="article.is_collected ? 'orange' : '#777'"
@@ -70,6 +69,30 @@
       />
       <van-icon name="share" color="#777"></van-icon>
     </div>
+
+    <!-- 发布评论 -->
+    <van-popup
+      v-model="isPostShow"
+      position="bottom"
+    >
+      <post-comment
+        :target="articleId"
+        @post-success="onPostSuccess"
+      />
+    </van-popup>
+
+    <!-- 评论回复 -->
+    <van-popup
+      v-model="isReplyShow"
+      position="bottom"
+    >
+    <comment-reply
+      v-if="isReplyShow"
+      :comment="replyComment"
+      :article-id="articleId"
+      @close="isReplyShow = false"
+    />
+    </van-popup>
   </div>
 </template>
 
@@ -79,23 +102,32 @@ import { getArticleById, addCollect, deleteCollect, addLike, deleteLike } from '
 import { ImagePreview } from 'vant'
 import { addFollow, deleteFollow } from '@/api/user'
 import CommentList from './components/comment-list'
+import PostComment from './components/post-comment'
+import CommentReply from './components/comment-replay'
 
 export default {
   name: 'ArticleIndex',
   components: {
-    CommentList
+    CommentList,
+    PostComment,
+    CommentReply
   },
   props: {
     articleId: {
-      type: [Number, Object, String],
+      type: [String, Number, Object],
       required: true
     }
   },
   data () {
     return {
       article: {}, // 文章数据对象
-      isFollowLoading: false,
-      isCollectLoading: false
+      isFollowLoading: false, // 关注用户按钮的 loading 状态
+      isCollectLoading: false, // 收藏的 loading 状态
+      isPostShow: false, // 控制发布评论的显示状态
+      commentList: [], // 文章评论列表
+      totalCommentCount: 0, // 评论总数据量
+      isReplyShow: false, // 控制回复的显示状态
+      replyComment: {} // 当前回复评论对象
     }
   },
   computed: {},
@@ -108,28 +140,27 @@ export default {
     async loadArticle () {
       const { data } = await getArticleById(this.articleId)
       this.article = data.data
-
-      // this.$nextTick是vue土工的方法
       this.$nextTick(() => {
         this.handlePerviewImage()
       })
     },
 
     handlePerviewImage () {
-      // 1.获取文章内容DOM容器
+      // 1. 获取文章内容 DOM 容器
       const articleContent = this.$refs['article-content']
 
-      // 2.得到所有的img标签
+      // 2. 得到所有的 img 标签
       const imgs = articleContent.querySelectorAll('img')
+
       const imgPaths = [] // 收集所有的图片路径
 
-      // 3.循环img列表,给img注册点击事件
+      // 3. 循环 img 列表，给 img 注册点击事件
       imgs.forEach((img, index) => {
         imgPaths.push(img.src)
         img.onclick = function () {
-          // 4.在事件处理函数中调用ImagePreview()预览
+          // 4. 在事件处理函数中调用 ImagePreview() 预览
           ImagePreview({
-            images: imgPaths, // 图片预览路径
+            images: imgPaths, // 预览图片路径列表
             startPosition: index // 起始位置
           })
         }
@@ -137,20 +168,17 @@ export default {
     },
 
     async onFollow () {
-      // 开启按钮的 loading 状态
       this.isFollowLoading = true
       if (this.article.is_followed) {
-        // 如果已关注，则取消关注
+        // 已关注，取消关注
         await deleteFollow(this.article.aut_id)
+        // this.article.is_followed = false
       } else {
-        // 否则添加关注
+        // 没有关注，添加关注
         await addFollow(this.article.aut_id)
+        // this.article.is_followed = true
       }
-
-      // 更新视图
       this.article.is_followed = !this.article.is_followed
-
-      // 关闭按钮的 loading 状态
       this.isFollowLoading = false
     },
 
@@ -173,26 +201,42 @@ export default {
     async onLike () {
       this.$toast.loading({
         message: '操作中...',
-        forbidClick: true // 禁止背景点击
+        forbidClick: true
       })
       if (this.article.attitude === 1) {
-        // 如果已点赞，则取消点赞
+        // 已点赞，取消点赞
         await deleteLike(this.articleId)
         this.article.attitude = -1
       } else {
-        // 否则添加点赞
+        // 没有点赞，添加点赞
         await addLike(this.articleId)
         this.article.attitude = 1
       }
-
-      // 更新视图
       this.$toast.success(`${this.article.attitude === 1 ? '' : '取消'}点赞成功`)
+    },
+
+    onPostSuccess (comment) {
+      // 把发布成功的评论数据对象放到评论列表顶部
+      this.commentList.unshift(comment)
+
+      // 更新评论的总数量
+      this.totalCommentCount++
+
+      // 关闭发布评论弹出层
+      this.isPostShow = false
+    },
+
+    onReplyClick (comment) {
+      this.replyComment = comment
+
+      // 展示回复内容
+      this.isReplyShow = true
     }
   }
 }
 </script>
 
-<style scoped lang='less'>
+<style scoped lang="less">
 .article-wrap {
   position: fixed;
   left: 0;
@@ -201,15 +245,6 @@ export default {
   bottom: 44px;
   overflow-y: auto;
 }
-.van-nav-bar {
-  background-color: #3296fa;
-}
-/deep/ .van-nav-bar__title {
-  color: #fff;
-}
-/deep/ .van-icon {
-  color: #fff;
-}
 .title {
   font-size: 20px;
   color: #3a3a3a;
@@ -217,6 +252,7 @@ export default {
   background-color: #fff;
   margin: 0;
 }
+
 .user-info {
   .avatar {
     width: 35px;
@@ -225,10 +261,10 @@ export default {
   }
   .name {
     font-size: 12px;
-    color: #333;
+    color: #333333;
   }
   .pubdate {
-    font-size: 14px;
+    font-size: 11px;
     color: #b4b4b4;
   }
   .follow-btn {
@@ -236,6 +272,7 @@ export default {
     height: 29px;
   }
 }
+
 ul {
   list-style: unset;
 }
@@ -244,6 +281,7 @@ ul {
   padding: 14px;
   background-color: #fff;
 }
+
 .article-bottom {
   position: fixed;
   left: 0;
