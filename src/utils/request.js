@@ -9,7 +9,8 @@ import JSONbig from 'json-bigint'
 import store from '@/store'
 
 const request = axios.create({
-  baseURL: 'http://ttapi.research.itcast.cn/', // 基础路径
+  // baseURL: 'http://ttapi.research.itcast.cn/', // 基础路径
+  baseURL: 'http://api-toutiao-web.itheima.net',
   transformResponse: [function (data) {
     // 后端返回的数据可能不是JSON格式的字符串,为了不报错,此时使用try-catch来捕获异常,处理异常的发生
     try {
