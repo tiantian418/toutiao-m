@@ -1,33 +1,34 @@
 <template>
-  <div class="update-gender">
-    <van-picker
-      title="性别"
-      show-toolbar
-      :columns="columns"
-      :default-index="defaultIndex"
-      @cancel="$emit('close')"
-      @confirm="onConfirm"
-      @change="onGenderChange"
+  <div class="update-birthday">
+    <van-datetime-picker
+      v-model="currentDate"
+      type="date"
+      :min-date="minDate"
+      :max-date="maxDate"
+       @cancel="$emit('close')"
+       @confirm="onConfirm"
     />
   </div>
 </template>
 
 <script>
 import { updateUserProfile } from '@/api/user'
+import dayjs from 'dayjs'
 
 export default {
-  name: 'UpdateGender',
+  name: 'UpdateBirthday',
   components: {},
   props: {
     value: {
-      type: Number,
+      type: String,
       required: true
     }
   },
   data () {
     return {
-      columns: ['男', '女'],
-      defaultIndex: this.value
+      minDate: new Date(1970, 0, 1),
+      maxDate: new Date(),
+      currentDate: new Date(this.value)
     }
   },
   computed: {},
@@ -35,23 +36,21 @@ export default {
   created () {},
   mounted () {},
   methods: {
-    onGenderChange (picker, value, index) {
-      this.defaultIndex = index
-    },
-
     async onConfirm () {
       this.$toast.loading({
         message: '保存中',
         forbidClick: true
       })
 
-      // 更新用户性别
+      const date = dayjs(this.currentDate).format('YYYY-MM-DD')
+
+      // 更新用户生日
       await updateUserProfile({
-        gender: this.defaultIndex
+        birthday: date
       })
 
-      // 修改父组件的gender
-      this.$emit('input', this.defaultIndex)
+      // 改变父组件中的birthday
+      this.$emit('input', date)
 
       // 关闭弹出层
       this.$emit('close')
