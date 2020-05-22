@@ -1,7 +1,9 @@
 <template>
   <div class="layout-container">
     <!-- 二级路由出口 -->
-    <router-view />
+    <keep-alive>
+      <router-view />
+    </keep-alive>
 
     <!-- 底部导航栏 -->
     <van-tabbar v-model="active">
@@ -25,7 +27,9 @@ export default {
   computed: {},
   watch: {},
   created () {},
-  mounted () {},
+  mounted () {
+    this.$store.commit('addCachePage', 'LayoutIndex')
+  },
   methods: {}
 }
 </script>
